@@ -1,5 +1,8 @@
+// syntax of (content) creates a new route group called content.
+// allows to set up dedicated root layout for specific routes that's part of this group
+
+import '../globals.css';
 import MainHeader from '@/components/main-header';
-import './globals.css';
 
 export const metadata = {
   title: 'Next.js Page Routing & Rendering',
