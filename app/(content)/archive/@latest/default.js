@@ -2,8 +2,8 @@ import NewsList from "@/components/news-list";
 import { getLatestNews } from "@/lib/news"
 
 // Setting up to be "Parallel Routing"
-export default function LatestNewsPage() {
-  const latestNews = getLatestNews();
+export default async function LatestNewsPage() {
+  const latestNews = await getLatestNews();
 
   return (
     <>

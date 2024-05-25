@@ -1,10 +1,10 @@
-import { DUMMY_NEWS } from "@/dummy-news";
+import { getNewsItem } from "@/lib/news";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export default function NewsDetailPage({params}) {
+export default async function NewsDetailPage({params}) {
   const newsSlug = params.slug; // params object passed by NextJS.
-  const newsItem = DUMMY_NEWS.find(newsItem => newsItem.slug === newsSlug) // find a news article identical to slug
+  const newsItem = await getNewsItem(newsSlug);
 
   if (!newsItem) {
     notFound(); // redirect to closest not found content, if newsItem is false.

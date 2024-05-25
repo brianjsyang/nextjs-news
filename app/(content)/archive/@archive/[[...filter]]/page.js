@@ -2,7 +2,7 @@ import NewsList from "@/components/news-list";
 import Link from "next/link";
 import { getAvailableNewsMonths, getAvailableNewsYears, getNewsForYear, getNewsForYearAndMonth } from "@/lib/news";
 
-export default function FilteredNewsPage({params}) {
+export default async function FilteredNewsPage({params}) {
   // filter returns array of all matched URL segments.
   const filter = params.filter; // `/archive/2024/03` => ['2024', '03']
 
@@ -10,16 +10,16 @@ export default function FilteredNewsPage({params}) {
   const selectedMonth = filter?.[1];
 
   let news;
-  let links = getAvailableNewsYears(); // by default, get all years of the available news.
+  let links = await getAvailableNewsYears(); // by default, get all years of the available news.
 
 
   if (selectedYear && !selectedMonth) {
     // we just have year ... display all news from the year, and replace year links to months.
-    news  = getNewsForYear(selectedYear);
+    news  = await getNewsForYear(selectedYear);
     links = getAvailableNewsMonths(selectedYear);
   }
   if (selectedYear && selectedMonth) {
-    news = getNewsForYearAndMonth(selectedYear, selectedMonth);
+    news = await getNewsForYearAndMonth(selectedYear, selectedMonth);
     links = []; // don't want to load links when at the deepest level.
   }
 
@@ -31,9 +31,10 @@ export default function FilteredNewsPage({params}) {
  
 
   // validate proper url
+  const availabeYears = await getAvailableNewsYears();
   if (
-    (selectedYear   && !getAvailableNewsYears().includes(parseInt(selectedYear))) || 
-    (selectedMonth  && !getAvailableNewsMonths(selectedYear).includes(parseInt(selectedMonth)))
+    (selectedYear   && !availabeYears.includes(selectedYear)) || 
+    (selectedMonth  && !getAvailableNewsMonths(selectedYear).includes(selectedMonth))
   ) {
     throw new Error('Invalid Filter.');
   }

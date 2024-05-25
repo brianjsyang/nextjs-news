@@ -1,15 +1,11 @@
 import NewsList from "@/components/news-list";
+import { getAllNews } from "@/lib/news";
 
 export default async function NewsPage() {
   // fetch the news from the backend via API
-  const response = await fetch('http://localhost:8080/news');
+  // we are in the server already, so fetching data server-side is perfectly valid.
+  const news = await getAllNews();
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch news');
-  }
-
-  const news = await response.json();
-  
   return (
     <>
       <h1>News Page</h1>
