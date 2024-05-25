@@ -1,26 +1,15 @@
+import { Suspense } from "react";
 import NewsList from "@/components/news-list";
 import Link from "next/link";
 import { getAvailableNewsMonths, getAvailableNewsYears, getNewsForYear, getNewsForYearAndMonth } from "@/lib/news";
 
-export default async function FilteredNewsPage({params}) {
-  // filter returns array of all matched URL segments.
-  const filter = params.filter; // `/archive/2024/03` => ['2024', '03']
-
-  const selectedYear  = filter?.[0]; // access the first index IF filter is defined.
-  const selectedMonth = filter?.[1];
-
+async function FilteredNews({year, month}) {
   let news;
-  let links = await getAvailableNewsYears(); // by default, get all years of the available news.
 
-
-  if (selectedYear && !selectedMonth) {
-    // we just have year ... display all news from the year, and replace year links to months.
-    news  = await getNewsForYear(selectedYear);
-    links = getAvailableNewsMonths(selectedYear);
-  }
-  if (selectedYear && selectedMonth) {
-    news = await getNewsForYearAndMonth(selectedYear, selectedMonth);
-    links = []; // don't want to load links when at the deepest level.
+  if (year && !month) {
+    news  = await getNewsForYear(year);
+  } else if (year && month) {
+    news = await getNewsForYearAndMonth(year, month)
   }
 
   // get list of news ... or fallback text if none.
@@ -28,24 +17,36 @@ export default async function FilteredNewsPage({params}) {
   if (news && news.length > 0) {
     newsContent = <NewsList news={news} />
   }
- 
+
+  return newsContent;
+}
+
+async function FilterHeader({year, month}) {
+  const availabeYears = await getAvailableNewsYears();
+  let links = availabeYears; // by default, get all years of the available news.
 
   // validate proper url
-  const availabeYears = await getAvailableNewsYears();
   if (
-    (selectedYear   && !availabeYears.includes(selectedYear)) || 
-    (selectedMonth  && !getAvailableNewsMonths(selectedYear).includes(selectedMonth))
+    (year   && !availabeYears.includes(year)) || 
+    (month  && !getAvailableNewsMonths(year).includes(month))
   ) {
     throw new Error('Invalid Filter.');
   }
 
+  if (year && !month) {
+    // we just have year ... display all news from the year, and replace year links to months.
+    links = getAvailableNewsMonths(year);
+  }
+  if (year && month) {
+    links = []; // don't want to load links when at the deepest level.
+  }
+
   return (
-    <>
-      <header id="archive-header">
+    <header id="archive-header">
         <nav>
           <ul>
             {links.map(link => {
-              const href = selectedYear ? `/archive/${selectedYear}/${link}` : `/archive/${link}`; // in url, month should come AFTER selected year.
+              const href = year ? `/archive/${year}/${link}` : `/archive/${link}`; // in url, month should come AFTER selected year.
 
               return (
                 <li key={link}>
@@ -56,7 +57,25 @@ export default async function FilteredNewsPage({params}) {
           </ul>
         </nav>
       </header>
-      {newsContent}
+  )
+}
+
+
+export default async function FilteredNewsPage({params}) {
+  // filter returns array of all matched URL segments.
+  const filter = params.filter; // `/archive/2024/03` => ['2024', '03']
+
+  const selectedYear  = filter?.[0]; // access the first index IF filter is defined.
+  const selectedMonth = filter?.[1];
+
+  return (
+    <>
+      <Suspense fallback={<p>Loading filter with Suspense...</p>}>
+        <FilterHeader year={selectedYear} month={selectedMonth}/>
+      </Suspense>
+      <Suspense fallback={<p>Loading News with Suspense ...</p>}>
+        <FilteredNews year={selectedYear} month={selectedMonth}/>
+      </Suspense>
     </>
   );
 }
